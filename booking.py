@@ -1,11 +1,21 @@
+from dataclasses import dataclass
 table:dict = {} #饭店桌子的信息,{'01': 2, '02': 2... '07': 6}桌号:每桌座位
 bookdict:dict={} #已经预定的信息,{'2025-07-01': 1, '2025-07-07': 1}
 Input:list = [] #
 status:dict = {} #{'01': 'available', '02': 'available'...'07': 'available'}桌子是否被预定
+@dataclass
+class BookInfo:
+    name:str
+    phone:int
+    date:str
+    code:int #ticket code
+    def __str__(self):
+        return f"Added booking. The ticket code for {self.date} is {self.code}"
 class Mybooking:
-    def __init__(self,bookdict:dict,status_per_date:dict):
-        self.bookdict = bookdict
-        self.date_status = status_per_date
+    def __init__(self,info:BookInfo):
+        self.info = BookInfo
+    def __str__(self):
+        return str(self.info)
     def update(self):
         None
     
@@ -36,6 +46,9 @@ def Listing():
 def Removing():
     return None
 def Rule():
+    if userInput == "Exit":
+        print("bye")
+        return
     
     return None
 
