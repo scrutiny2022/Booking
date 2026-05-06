@@ -1,0 +1,7 @@
+Booking|L|2025-07-01|1664|4
+Booking|Leo|2025-07-01|1344|4
+Booking|Leo|2025-06-01|1344|4
+Allocate|2025-06-01|1
+Remove|2025-07-01|2
+List
+Exit
