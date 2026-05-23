@@ -14,28 +14,62 @@ class BookInfo:
     table:int
     def __str__(self):
         return f"{self.table}|{self.name}|{self.phone}|{self.date}|{self.code}"
-
-class Mybooking:
-    def __init__(self,info:BookInfo):
-        self.info = info
-    def __str__(self):
-        return f"The ticket code for {self.info.date} is {self.info.code}"
-    def update(self):
-        #get and update ticket code in the booking dictionary
-        if bookdict.get(self.info.date,None): #you wen ti
-            bookdict[self.info.date] += 1
+class BookingSystem:
+    def __init__(self):
+        self.__bookList = []  #已经预定的信息,[bookInfo-1,bookInfo-2] private variable
+        self.__dailyTableStatus:dict[str, int] = {}
+        self.bookDict:dict[str,int] = {}
+    def findBookInfo(self,date,**kwargs):
+        filtered = [item for item in self.__bookList if item.date == date]
+        if 'ticket_code' in kwargs:
+            ticket_code = kwargs['ticket_code']
+            for item in filtered:
+                if item.code == ticket_code:   # 注意是 ==
+                    return item
+        elif 'name' in kwargs and 'phone' in kwargs:
+            name = kwargs['name']
+            phone = kwargs['phone']
+            for item in filtered:
+                if item.name == name and item.phone == phone:
+                    return item
+            return None
+    
+    def book(self,name,date,phone):
+        if self.bookDict.get(date,None): #you wen ti
+            self.bookDict[date] += 1
         else:
-            bookdict[self.info.date] = 1
-        self.info.code = bookdict[self.info.date]
-        print(f"Booking successful. Your ticket code is {self.info.date}--{self.info.code}.")
-        None
-
-def findBookInfo(bookinfoList:list, date:str,code:int):
-    for i in bookinfoList:
-        if i.date == date and i.code == code:
-            return i
+            self.bookDict[date] = 1
+        code = self.bookDict[date]
+        table = 0
+        print(f"Booking successful. Your ticket code is {date}--{code}.")
+        bookInfo = BookInfo(name,date,phone,code,table)
+        self.__bookList.append(bookInfo)
+        #update the table status and date table status for the booking
+        if self.__dailyTableStatus.get(date,None) == None:
+            self.__dailyTableStatus[date] = "0000000"
         else:
             pass
+        return None
+    def allocate(self,name,date,phone):
+        string = int(self.__dailyTableStatus[date])
+        booking = self.findBookInfo(date,name = name,phone=phone)
+        for e in range(7):
+            if not (string & (1 << (6-e))):
+                string |= (1<<(6-e))
+                booking.table = e+1
+                break
+            else:
+                pass
+        self.__dailyTableStatus[date] = bin(string).replace('0b','')
+        print(f"Allocate successfully. {date} code {booking.code} has table {booking.table}")
+        pass
+    def listing(self):
+        for e in self.__bookList:
+            print(e)
+        return None
+    
+
+
 def Init():
     #读取饭店桌子的信息并存储在字典里
     with open("file1.txt","r") as new:
@@ -47,44 +81,10 @@ def Init():
         table[a[0]] = int(a[-1])
         status[a[0]] = "Available"
     return None
-def Booking(Input:list):
-    #处理预定信息
-    #Input:list= userInput.split('|')
-    ticket_code = 0
-    table = 0
-    bookInfo = BookInfo(Input[1],Input[2],Input[3],ticket_code,table)
-    bookList.append(bookInfo)
-    mybook = Mybooking(bookInfo)
-    #update the table status and date table status for the booking
-    if dailyTableStatus.get(bookInfo.date,None) == None:
-        dailyTableStatus[bookInfo.date] = "0000000"
-    else:
-        pass
-    mybook.update()
+
+
     return None
 
-def Allocation(info:BookInfo):
-    #根据日期及ticket code分配桌子，不考虑人数和座位数
-    string = int(dailyTableStatus[info.date])
-    for e in range(7):
-        if not (string & (1 << (6-e))):
-            string |= (1 << (6-e))
-            info.table = e+1
-            break
-        else:
-            pass
-    dailyTableStatus[info.date] = bin(string).replace('0b','')
-    print(f"Allocate successfully. {info.date} code {info.code} on Table {info.table}")
-    return None
-def Listing():
-    #List all the tables that have been booked
-    #table number | who booked | Contact number| Date
-    if bookList == []:
-        print("No Booking")
-        return
-    for i in bookList:
-        print(i)
-    return None
 def Removing(bookinfoList:list, date:str,code:int):
     for i in bookinfoList:
         if i.date == date and i.code == code:
@@ -108,22 +108,23 @@ def Rule():
             print("bye")
             break
         Input = userInput.split('|')
-        if Input[0] == "Booking":
-            Booking(Input)
-            pass
-        if Input[0] == "Allocate":
-            allocate = findBookInfo(bookList,Input[1],int(Input[2]))
-            Allocation(allocate)
-        if Input[0] == "List":
-            Listing()
-        if Input[0] == "Remove":
-            remove = Removing(bookList,Input[1],int(Input[2]))
-            print(bookList)
-            print(dailyTableStatus)
+
     return None
 
 #Booking|Name|Date|Contact number| number of people
 #Allocate|Date|Ticket code|Name
 if __name__ == '__main__':
     Init()
-    Rule()
+    a = "Book|Leo|2025-07-01|12345678|4"
+    b = a.split('|')
+    BookingSys = BookingSystem()
+    BookingSys.book(b[1],b[2],b[3])
+    a = "Book|Leon|2025-07-01|1234|4"
+    b = a.split('|')
+    BookingSys.book(b[1],b[2],b[3])
+    a = "Book|Leo|2025-07-03|12345678|4"
+    b = a.split('|')
+    BookingSys.book(b[1],b[2],b[3])
+    a = "Allocate|Leon|2025-07-01|1234|4"
+    b = a.split('|')
+    BookingSys.allocate(b[1],b[2],b[3])
